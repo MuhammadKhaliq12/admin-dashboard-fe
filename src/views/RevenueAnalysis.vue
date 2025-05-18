@@ -28,12 +28,17 @@ const filteredRevenueData = computed(() => {
 
 // Revenue chart data
 const revenueChartData = computed(() => {
-  const labels = filters.timeRange === 'daily' 
-    ? filteredRevenueData.value.map(item => item.date?.split('-').slice(1).join('/'))
-    : filteredRevenueData.value.map(item => item.month)
+  const labels = filteredRevenueData.value.map(item => {
+    if (filters.timeRange === 'daily' && 'date' in item) {
+      return item.date.split('-').slice(1).join('/')
+    } else if ('month' in item) {
+      return item.month
+    }
+    return ''
+  })
 
   const revenueData = filteredRevenueData.value.map(item => item.revenue)
-  
+
   return {
     labels,
     datasets: [
@@ -52,12 +57,17 @@ const revenueChartData = computed(() => {
 
 // Orders chart data
 const ordersChartData = computed(() => {
-  const labels = filters.timeRange === 'daily' 
-    ? filteredRevenueData.value.map(item => item.date?.split('-').slice(1).join('/'))
-    : filteredRevenueData.value.map(item => item.month)
+  const labels = filteredRevenueData.value.map(item => {
+    if (filters.timeRange === 'daily' && 'date' in item) {
+      return item.date.split('-').slice(1).join('/')
+    } else if ('month' in item) {
+      return item.month
+    }
+    return ''
+  })
 
   const ordersData = filteredRevenueData.value.map(item => item.orders)
-  
+
   return {
     labels,
     datasets: [
@@ -75,29 +85,29 @@ const ordersChartData = computed(() => {
 const categoryRevenueChartData = computed(() => {
   const revenueByCategory = orderStore.revenueByCategory
   const categories = Object.keys(revenueByCategory)
-  
+
   // Filter by selected category
   let filteredCategories = categories
   let filteredValues = categories.map(cat => revenueByCategory[cat])
-  
+
   if (filters.category !== 'all') {
     filteredCategories = categories.filter(cat => cat === filters.category)
     filteredValues = filteredCategories.map(cat => revenueByCategory[cat])
   }
-  
+
   return {
     labels: filteredCategories,
     datasets: [
       {
         data: filteredValues,
         backgroundColor: [
-          '#1976D2', // Primary
-          '#26A69A', // Secondary
-          '#FF9800', // Accent
-          '#4CAF50', // Success
-          '#F44336', // Error
-          '#9C27B0', // Additional
-          '#607D8B'  // Additional
+          '#1976D2',
+          '#26A69A',
+          '#FF9800',
+          '#4CAF50',
+          '#F44336',
+          '#9C27B0',
+          '#607D8B'
         ]
       }
     ]
@@ -180,11 +190,11 @@ onMounted(async () => {
   if (productStore.products.length === 0) {
     await productStore.initializeMockData()
   }
-  
+
   if (orderStore.orders.length === 0) {
     await orderStore.initializeMockData()
   }
-  
+
   isLoading.value = false
 })
 </script>
@@ -192,11 +202,11 @@ onMounted(async () => {
 <template>
   <div>
     <h1 class="text-2xl font-semibold text-gray-800 mb-6">Revenue Analysis</h1>
-    
+
     <div v-if="isLoading" class="flex justify-center items-center min-h-[400px]">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
     </div>
-    
+
     <div v-else>
       <!-- Revenue Overview Cards -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -214,7 +224,7 @@ onMounted(async () => {
             </div>
           </div>
         </div>
-        
+
         <!-- Current Month Revenue Card -->
         <div class="dashboard-card">
           <div class="flex items-center justify-between">
@@ -229,7 +239,7 @@ onMounted(async () => {
             </div>
           </div>
         </div>
-        
+
         <!-- Average Order Value Card -->
         <div class="dashboard-card">
           <div class="flex items-center justify-between">
@@ -245,7 +255,7 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      
+
       <!-- Filters -->
       <div class="dashboard-card mb-6">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -253,13 +263,13 @@ onMounted(async () => {
             <h2 class="text-lg font-medium text-gray-800 mb-2">Revenue Analysis</h2>
             <p class="text-sm text-gray-500">Filter revenue data by time period and category</p>
           </div>
-          
+
           <div class="flex flex-col sm:flex-row gap-3">
             <!-- Time Range Filter -->
             <div>
               <label for="timeRange" class="block text-sm font-medium text-gray-700 mb-1">Time Range</label>
-              <select 
-                id="timeRange" 
+              <select
+                id="timeRange"
                 v-model="filters.timeRange"
                 class="input-field"
               >
@@ -267,12 +277,12 @@ onMounted(async () => {
                 <option value="monthly">Monthly</option>
               </select>
             </div>
-            
+
             <!-- Category Filter -->
             <div>
               <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-              <select 
-                id="category" 
+              <select
+                id="category"
                 v-model="filters.category"
                 class="input-field"
               >
@@ -285,38 +295,38 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      
+
       <!-- Charts Section -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <!-- Revenue Line Chart -->
         <div class="dashboard-card lg:col-span-2">
           <h2 class="text-lg font-medium text-gray-800 mb-4">Revenue Trends</h2>
           <div class="h-80">
-            <Line :data="revenueChartData" :options="lineChartOptions" />
+            <Line :data="revenueChartData" :option="lineChartOptions" />
           </div>
         </div>
-        
+
         <!-- Revenue by Category Chart -->
         <div class="dashboard-card">
           <h2 class="text-lg font-medium text-gray-800 mb-4">Revenue by Category</h2>
           <div class="h-80">
-            <Doughnut :data="categoryRevenueChartData" :options="doughnutChartOptions" />
+            <Doughnut :data="categoryRevenueChartData" :option="doughnutChartOptions" />
           </div>
         </div>
       </div>
-      
+
       <!-- Orders Chart -->
       <div class="dashboard-card">
         <h2 class="text-lg font-medium text-gray-800 mb-4">Order Trends</h2>
         <div class="h-80">
-          <Bar :data="ordersChartData" :options="barChartOptions" />
+          <Bar :data="ordersChartData" :option="barChartOptions" />
         </div>
       </div>
-      
+
       <!-- Revenue Breakdown Table -->
       <div class="dashboard-card mt-6">
         <h2 class="text-lg font-medium text-gray-800 mb-4">Revenue Breakdown</h2>
-        
+
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">

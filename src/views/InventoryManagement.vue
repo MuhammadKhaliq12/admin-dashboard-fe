@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, reactive } from 'vue'
 import { useProductStore, productCategories, type Product } from '../stores/products'
-import { toast } from 'vue3-toastify'
 
 const productStore = useProductStore()
 
